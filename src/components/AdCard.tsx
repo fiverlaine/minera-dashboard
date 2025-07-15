@@ -6,7 +6,6 @@ import {
   Volume2, 
   VolumeX, 
   Download, 
-  ExternalLink, 
   Clock,
   Globe,
   MessageCircle, // Para WhatsApp

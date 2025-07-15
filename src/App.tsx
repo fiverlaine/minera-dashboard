@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
         throw new Error('Usuário não autenticado')
       }
 
-      const { data, error } = await supabase.functions.invoke('toggle-favorite-test', {
+      const { error } = await supabase.functions.invoke('toggle-favorite-test', {
         body: { ad_id: adId },
         headers: {
           Authorization: `Bearer ${session.access_token}`

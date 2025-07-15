@@ -76,9 +76,7 @@ const LandingPage: React.FC = () => {
     { number: "150+", label: "Usuários Ativos" }
   ];
 
-  const companies = [
-    "TechCorp", "AdVantage", "MarketPro", "DigitalEdge", "GrowthLab", "InnovateCo"
-  ];
+
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden">

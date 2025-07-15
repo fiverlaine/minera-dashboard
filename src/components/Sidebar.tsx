@@ -6,8 +6,7 @@ import {
   Heart, 
   Settings, 
   HelpCircle, 
-  LogOut,
-  TrendingUp
+  LogOut
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import Logo from './Logo';
