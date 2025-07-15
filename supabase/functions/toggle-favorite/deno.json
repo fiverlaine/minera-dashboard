@@ -1,0 +1,8 @@
+{
+  "importMap": "../import_map.json",
+  "functions": {
+    "toggle-favorite": {
+      "verify_jwt": false
+    }
+  }
+} 

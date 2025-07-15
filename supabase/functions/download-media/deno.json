@@ -1,0 +1,10 @@
+{
+  "imports": {
+    "@supabase/functions-js": "jsr:@supabase/functions-js@2.4.1"
+  },
+  "deploy": {
+    "project": "ttqahrjujapdduubxlvd",
+    "entrypoint": "index.ts",
+    "verify_jwt": false
+  }
+} 
