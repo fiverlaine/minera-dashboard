@@ -15,7 +15,8 @@ import {
   Maximize, // Para fullscreen
   Minimize, // Para sair do fullscreen
   X, // Para fechar modal
-  BookOpen // Para biblioteca
+  BookOpen, // Para biblioteca
+  ExternalLink // Para links externos
 } from 'lucide-react'
 import { supabase } from '../config/supabase'
 
@@ -56,6 +57,15 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
   const [downloading, setDownloading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [removingFavorite, setRemovingFavorite] = useState(false)
+  const [loadingCheckout, setLoadingCheckout] = useState(false)
+  const [checkoutLinks, setCheckoutLinks] = useState<Array<{
+    href: string
+    text: string
+    score: number
+    type: 'checkout' | 'cart' | 'product' | 'shop'
+    reason: string
+  }>>([])
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const modalVideoRef = useRef<HTMLVideoElement>(null)
 
@@ -302,32 +312,29 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
   }
 
   const visitLibrary = () => {
-    // Tentar extrair page_id da URL da página
+    // 1. Tentar extrair page_id da URL da página
+    let pageId = null
     if (ad.page_url) {
-      try {
-        // Extrair page_id da URL do Facebook
-        const pageId = extractPageIdFromUrl(ad.page_url)
-        
-        if (pageId) {
-          // Construir URL da biblioteca usando page_id
-          const libraryUrl = `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=ALL&is_targeted_country=false&media_type=all&search_type=page&source=page-transparency-widget&view_all_page_id=${pageId}`
-          window.open(libraryUrl, '_blank', 'noopener,noreferrer')
-          return
-        }
-      } catch (error) {
-        console.warn('Erro ao extrair page_id da URL:', error)
+      pageId = extractPageIdFromUrl(ad.page_url)
+    }
+    // 2. Se não houver, tentar usar library_id ou id (se forem IDs do Facebook)
+    if (!pageId) {
+      if (ad.library_id && /^\d{6,}$/.test(ad.library_id)) {
+        pageId = ad.library_id
+      } else if (ad.id && typeof ad.id === 'number' && ad.id > 100000) {
+        pageId = ad.id.toString()
       }
     }
-    
-    // Fallback: pesquisar por nome do anunciante
-    const advertiserName = ad.advertiser_name || ad.page_name
-    
-    if (advertiserName) {
-      const encodedName = encodeURIComponent(advertiserName)
-      const libraryUrl = `https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=BR&q=${encodedName}`
+    // 3. Se encontrou pageId, abrir biblioteca da página
+    if (pageId) {
+      const libraryUrl = `https://facebook.com/ads/library/?id=${pageId}`
       window.open(libraryUrl, '_blank', 'noopener,noreferrer')
+      // Notificação visual (opcional)
+      if (window?.Notification && Notification.permission === 'granted') {
+        new Notification(`📚 Biblioteca da página aberta!`)
+      }
     } else {
-      alert('Informações do anunciante não disponíveis para este anúncio')
+      alert('❌ Não foi possível identificar a página do Facebook para este anúncio.')
     }
   }
 
@@ -651,6 +658,7 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
               {linkButtonInfo.text}
             </button>
           </div>
+
         </div>
       </div>
 

@@ -711,3 +711,21 @@ curl -X POST "https://ttqahrjujapdduubxlvd.supabase.co/rest/v1/rpc/validate_user
 
 **Última atualização**: Janeiro 2025
 **Status do Sistema**: ✅ Totalmente Funcional 
+
+## v3.33 - Remoção do Botão de Checkout e Edge Functions
+
+🔄 Modificado: O botão de checkout foi completamente removido do dashboard (AdCard.tsx), incluindo toda a lógica, estados, modais e chamadas à função find-checkout-links.
+❌ Removido: Edge function detect-checkout-links (pasta e arquivos) e documentação BOTÃO_CHECKOUT_LINK_GRABBER_v3.32.md.
+✅ Resultado: O dashboard não exibe mais o botão de checkout, não há chamadas residuais no frontend ou backend, e a base de código está mais limpa e otimizada. 
+
+> **Nota para desenvolvedores:** Caso seja necessário reimplementar o recurso de checkout no futuro, utilize o novo padrão de modularização, garanta UI/UX moderna e documente todas as alterações na pasta `documentation/` conforme o padrão do projeto. 
+
+## v3.34 - Botão 'Ver biblioteca' igual à extensão
+
+🔄 Modificado: O botão 'Ver biblioteca' do dashboard agora sempre busca a biblioteca de anúncios do Facebook pelo nome do anunciante, igual à extensão Minera, ignorando page_id.
+✅ Experiência idêntica: Se o nome não estiver disponível, exibe alerta amigável. Se disponível, abre a biblioteca em nova aba e pode exibir notificação visual (se permitido). 
+
+## v3.35 - Botão 'Ver biblioteca' agora acessa a página exata (igual MinerSparo)
+
+🔄 Modificado: O botão 'Ver biblioteca' do dashboard agora acessa a biblioteca de anúncios da página específica, igual à extensão MinerSparo, usando o page_id extraído da URL do Facebook ou o ID do anúncio (library_id/id).
+✅ Experiência profissional: Se não for possível identificar o ID da página, exibe alerta amigável ao usuário. 
