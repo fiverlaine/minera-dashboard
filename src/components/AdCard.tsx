@@ -13,7 +13,6 @@ import {
   Send, // Para Telegram
   ShoppingCart, // Para E-commerce
   Maximize, // Para fullscreen
-  Minimize2, // Para sair do fullscreen
   X, // Para fechar modal
   BookOpen // Para biblioteca
 } from 'lucide-react'
