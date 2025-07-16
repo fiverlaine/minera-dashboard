@@ -1,22 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Download, 
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Download,
   Clock,
   Globe,
   MessageCircle, // Para WhatsApp
-  Instagram, // Para Instagram
+  Camera, // Para Instagram (substitui Instagram deprecated)
   Send, // Para Telegram
   ShoppingCart, // Para E-commerce
   Maximize, // Para fullscreen
-  Minimize, // Para sair do fullscreen
+  Minimize2, // Para sair do fullscreen
   X, // Para fechar modal
-  BookOpen, // Para biblioteca
-  ExternalLink // Para links externos
+  BookOpen // Para biblioteca
 } from 'lucide-react'
 import { supabase } from '../config/supabase'
 
@@ -57,15 +56,6 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
   const [downloading, setDownloading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [removingFavorite, setRemovingFavorite] = useState(false)
-  const [loadingCheckout, setLoadingCheckout] = useState(false)
-  const [checkoutLinks, setCheckoutLinks] = useState<Array<{
-    href: string
-    text: string
-    score: number
-    type: 'checkout' | 'cart' | 'product' | 'shop'
-    reason: string
-  }>>([])
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const modalVideoRef = useRef<HTMLVideoElement>(null)
 
@@ -96,7 +86,7 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
     }
 
     document.addEventListener('keydown', handleEscape)
-    
+
     return () => {
       document.removeEventListener('keydown', handleEscape)
     }
@@ -124,7 +114,7 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen)
-    
+
     // Sincronizar estado do vídeo principal com o modal
     if (!isModalOpen) {
       setTimeout(() => {
@@ -170,7 +160,7 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
       try {
         console.log('Tentando download via Edge Function (proxy)...')
         const proxyUrl = 'https://ttqahrjujapdduubxlvd.supabase.co/functions/v1/download-media'
-        
+
         // Obter token de autenticação do usuário
         const { data: { session } } = await supabase.auth.getSession()
         const authToken = session?.access_token
@@ -192,16 +182,16 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
           // A Edge Function retorna o arquivo como blob
           const blob = await response.blob()
           const blobUrl = URL.createObjectURL(blob)
-          
+
           const link = document.createElement('a')
           link.href = blobUrl
           link.download = fileName
           link.style.display = 'none'
-          
+
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
-          
+
           URL.revokeObjectURL(blobUrl)
           console.log('Download via Edge Function bem-sucedido!')
           return // Sucesso - não precisa tentar outros métodos
@@ -227,16 +217,16 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
         if (response.ok) {
           const blob = await response.blob()
           const blobUrl = URL.createObjectURL(blob)
-          
+
           const link = document.createElement('a')
           link.href = blobUrl
           link.download = fileName
           link.style.display = 'none'
-          
+
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
-          
+
           URL.revokeObjectURL(blobUrl)
           console.log('Download via fetch+blob bem-sucedido!')
           return // Sucesso - não precisa tentar outros métodos
@@ -254,11 +244,11 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
         link.target = '_blank'
         link.rel = 'noopener noreferrer'
         link.style.display = 'none'
-        
+
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
-        
+
         // Dar tempo para o download processar
         await new Promise(resolve => setTimeout(resolve, 1000))
         console.log('Download direto tentado!')
@@ -270,10 +260,10 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
       // Método 4: Abrir em nova aba como último recurso
       console.log('Abrindo mídia em nova aba para download manual...')
       window.open(mediaUrl, '_blank', 'noopener,noreferrer')
-      
+
       // Mostrar instrução para o usuário
       alert('📥 Arquivo aberto em nova aba!\n\nPara baixar:\n• Clique com botão direito na mídia\n• Selecione "Salvar como..."\n• Escolha onde salvar o arquivo')
-      
+
     } catch (error) {
       console.error('Erro geral no download:', error)
       alert(`❌ Erro ao processar download: ${error instanceof Error ? error.message : 'Erro desconhecido'}\n\nTente novamente ou abra o link manualmente.`)
@@ -351,14 +341,14 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
         // https://www.facebook.com/123456789
         /facebook\.com\/(\d+)$/
       ]
-      
+
       for (const pattern of patterns) {
         const match = url.match(pattern)
         if (match && match[1]) {
           return match[1]
         }
       }
-      
+
       return null
     } catch (error) {
       console.error('Erro ao extrair page_id:', error)
@@ -396,7 +386,7 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
         }
       case 'instagram':
         return {
-          icon: Instagram,
+          icon: Camera,
           text: 'Instagram',
           color: 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
         }
@@ -426,10 +416,10 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
 
   const handleRemoveFavorite = async () => {
     if (!onRemoveFavorite || removingFavorite) return
-    
+
     try {
       setRemovingFavorite(true)
-      await onRemoveFavorite(ad.id)
+      onRemoveFavorite(ad.id)
     } catch (error) {
       console.error('Erro ao remover favorito:', error)
     } finally {
@@ -439,292 +429,289 @@ export const AdCard: React.FC<AdCardProps> = ({ ad, showRemoveFavorite, onRemove
 
   return (
     <>
-    <div className="relative bg-dark-secondary rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
-      {/* Botão de remover favorito */}
-      {showRemoveFavorite && (
-        <div className="absolute top-2 right-2 z-10">
-          <button
-            onClick={handleRemoveFavorite}
-            disabled={removingFavorite}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
-              removingFavorite 
-                ? 'bg-gray-600 cursor-not-allowed' 
+      <div className="relative bg-dark-secondary rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
+        {/* Botão de remover favorito */}
+        {showRemoveFavorite && (
+          <div className="absolute top-2 right-2 z-10">
+            <button
+              onClick={handleRemoveFavorite}
+              disabled={removingFavorite}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${removingFavorite
+                ? 'bg-gray-600 cursor-not-allowed'
                 : 'bg-red-500 hover:bg-red-600 hover:scale-110'
-            } shadow-lg`}
-            title="Remover dos favoritos"
-          >
-            {removingFavorite ? (
-              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-            ) : (
-              <X className="w-4 h-4 text-white" />
-            )}
-          </button>
-        </div>
-      )}
-
-      {/* Header com informações da página */}
-      <div className="px-4 py-4 bg-dark-tertiary border-b border-dark-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* Foto da página */}
-            {ad.page_photo_url ? (
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-600 flex-shrink-0">
-                <img 
-                  src={ad.page_photo_url} 
-                  alt={ad.page_name || ad.advertiser_name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-600 flex-shrink-0 flex items-center justify-center">
-                <span className="text-gray-300 text-xs font-bold">
-                  {(ad.page_name || ad.advertiser_name).charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
-            
-            {/* Nome da página e contador */}
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                
-                <span className="text-sm font-medium text-white">
-                  {ad.page_name || ad.advertiser_name}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="font-bold text-sm" style={{color: '#1351ff'}}>
-                  {ad.uses_count || 1} anúncios
-                </span>
-              </div>
-            </div>
+                } shadow-lg`}
+              title="Remover dos favoritos"
+            >
+              {removingFavorite ? (
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              ) : (
+                <X className="w-4 h-4 text-white" />
+              )}
+            </button>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Área de Mídia */}
-      <div 
-        className="relative bg-black aspect-video group/media"
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
-      >
-        {hasVideo ? (
-          <>
-            <video
-              ref={videoRef}
-              src={ad.video_url || ''}
-              poster={ad.thumbnail_url || ''}
-              className="w-full h-full object-cover"
-              muted={isMuted}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onEnded={() => setIsPlaying(false)}
-            />
-            
-            {/* Overlay de controles */}
-            <div className={`absolute inset-0 bg-black/20 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}>
-              {/* Botão play central */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <button
-                  onClick={togglePlay}
-                  className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-200"
-                >
-                  {isPlaying ? (
-                    <Pause className="w-6 h-6" />
-                  ) : (
-                    <Play className="w-6 h-6 ml-0.5" />
-                  )}
-                </button>
-              </div>
+        {/* Header com informações da página */}
+        <div className="px-4 py-4 bg-dark-tertiary border-b border-dark-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Foto da página */}
+              {ad.page_photo_url ? (
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-600 flex-shrink-0">
+                  <img
+                    src={ad.page_photo_url}
+                    alt={ad.page_name || ad.advertiser_name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-600 flex-shrink-0 flex items-center justify-center">
+                  <span className="text-gray-300 text-xs font-bold">
+                    {(ad.page_name || ad.advertiser_name).charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
 
-              {/* Controles inferiores */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                <div className="flex items-center gap-2 text-white text-xs">
-                  <span>{formatTime(currentTime)}</span>
-                  <div className="flex-1">
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={duration ? (currentTime / duration) * 100 : 0}
-                      onChange={handleSeek}
-                      className="w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer slider"
-                    />
-                  </div>
-                  <span>{formatTime(duration)}</span>
-                  <button
-                    onClick={toggleMute}
-                    className="p-1 hover:bg-white/10 rounded transition-colors"
-                  >
-                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                  </button>
-                  <button
-                    onClick={toggleModal}
-                    className="p-1 hover:bg-white/10 rounded transition-colors"
-                  >
-                    {isModalOpen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-                  </button>
+              {/* Nome da página e contador */}
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+
+                  <span className="text-sm font-medium text-white">
+                    {ad.page_name || ad.advertiser_name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="font-bold text-sm" style={{ color: '#1351ff' }}>
+                    {ad.uses_count || 1} anúncios
+                  </span>
                 </div>
               </div>
             </div>
-          </>
-        ) : hasImage ? (
-          <img
-            src={ad.thumbnail_url || ''}
-            alt={ad.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.src = '/placeholder-image.jpg'
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-text-muted bg-dark-tertiary">
-            <div className="text-center">
-              <Play className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Sem mídia disponível</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-             {/* Conteúdo Principal */}
-       <div className="p-4">
-         {/* Descrição do anúncio */}
-         <p className={`text-text-secondary text-sm leading-relaxed mb-4 ${
-           isDescriptionExpanded ? '' : 'line-clamp-3'
-         }`}>
-           {getDescription()}
-         </p>
-
-         {/* Links de ação */}
-         {hasLongDescription() && (
-           <div className="flex items-center gap-2 mb-4">
-             <button 
-               onClick={toggleDescription}
-               className="text-blue-400 text-sm hover:text-blue-300 transition-colors"
-             >
-               {isDescriptionExpanded ? 'ver menos' : 'ver mais'}
-             </button>
-           </div>
-         )}
-
-        {/* Botões de ação */}
-        <div className="space-y-3">
-          {/* Botão de download */}
-          <button
-            onClick={downloadMedia}
-            disabled={downloading}
-            className={`w-full py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium border ${
-              downloading 
-                ? 'bg-blue-600 text-white border-blue-600 cursor-not-allowed' 
-                : 'bg-dark-tertiary hover:bg-dark-hover text-text-primary border-dark-border hover:border-accent-blue/30'
-            }`}
-          >
-            {downloading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                Baixando...
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4" />
-                Baixar anúncio
-              </>
-            )}
-          </button>
-
-          {/* Botões de visita */}
-          <div className="grid grid-cols-2 gap-2">
-            {/* Botão Ver Biblioteca */}
-            <button
-              onClick={() => visitLibrary()}
-              className="bg-purple-600 hover:bg-purple-700 text-white py-2.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium"
-            >
-              <BookOpen className="w-4 h-4" />
-              Ver Biblioteca
-            </button>
-
-            {/* Botão Dinâmico baseado no tipo de link */}
-            <button
-              onClick={() => visitSite()}
-              disabled={linkButtonInfo.disabled}
-              className={`${linkButtonInfo.color} ${linkButtonInfo.disabled ? 'opacity-50 cursor-not-allowed' : ''} text-white py-2.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium`}
-            >
-              <linkButtonInfo.icon className="w-4 h-4" />
-              {linkButtonInfo.text}
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 pb-4">
-        <div className="flex items-center justify-center text-xs text-text-muted">
-          <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            <span>{getDaysAgo(ad.created_at)} dias</span>
           </div>
         </div>
-      </div>
 
-      {/* Informações do anunciante (pequeno, discreto) */}
-      <div className="px-4 pb-3">
-        <div className="text-xs text-text-muted"> 
-        </div>
-      </div>
-    </div>
-
-    {/* Modal de Vídeo */}
-    <AnimatePresence>
-      {isModalOpen && hasVideo && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-          onClick={() => setIsModalOpen(false)}
+        {/* Área de Mídia */}
+        <div
+          className="relative bg-black aspect-video group/media"
+          onMouseEnter={() => setShowControls(true)}
+          onMouseLeave={() => setShowControls(false)}
         >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            className="relative max-w-6xl w-full max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Botão Fechar */}
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors z-10"
-            >
-              <X className="w-8 h-8" />
-            </button>
-
-            {/* Vídeo no Modal */}
-            <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
+          {hasVideo ? (
+            <>
               <video
-                ref={modalVideoRef}
+                ref={videoRef}
                 src={ad.video_url || ''}
                 poster={ad.thumbnail_url || ''}
-                className="w-full h-auto max-h-[80vh] object-contain"
-                controls
-                autoPlay={isPlaying}
+                className="w-full h-full object-cover"
                 muted={isMuted}
-                style={{ aspectRatio: '16/9' }}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={() => setIsPlaying(false)}
               />
+
+              {/* Overlay de controles */}
+              <div className={`absolute inset-0 bg-black/20 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}>
+                {/* Botão play central */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <button
+                    onClick={togglePlay}
+                    className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-200"
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-6 h-6" />
+                    ) : (
+                      <Play className="w-6 h-6 ml-0.5" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Controles inferiores */}
+                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                  <div className="flex items-center gap-2 text-white text-xs">
+                    <span>{formatTime(currentTime)}</span>
+                    <div className="flex-1">
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={duration ? (currentTime / duration) * 100 : 0}
+                        onChange={handleSeek}
+                        className="w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer slider"
+                      />
+                    </div>
+                    <span>{formatTime(duration)}</span>
+                    <button
+                      onClick={toggleMute}
+                      className="p-1 hover:bg-white/10 rounded transition-colors"
+                    >
+                      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={toggleModal}
+                      className="p-1 hover:bg-white/10 rounded transition-colors"
+                    >
+                      <Maximize className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : hasImage ? (
+            <img
+              src={ad.thumbnail_url || ''}
+              alt={ad.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.src = '/placeholder-image.jpg'
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-text-muted bg-dark-tertiary">
+              <div className="text-center">
+                <Play className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Sem mídia disponível</p>
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* Conteúdo Principal */}
+        <div className="p-4">
+          {/* Descrição do anúncio */}
+          <p className={`text-text-secondary text-sm leading-relaxed mb-4 ${isDescriptionExpanded ? '' : 'line-clamp-3'
+            }`}>
+            {getDescription()}
+          </p>
+
+          {/* Links de ação */}
+          {hasLongDescription() && (
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={toggleDescription}
+                className="text-blue-400 text-sm hover:text-blue-300 transition-colors"
+              >
+                {isDescriptionExpanded ? 'ver menos' : 'ver mais'}
+              </button>
+            </div>
+          )}
+
+          {/* Botões de ação */}
+          <div className="space-y-3">
+            {/* Botão de download */}
+            <button
+              onClick={downloadMedia}
+              disabled={downloading}
+              className={`w-full py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium border ${downloading
+                ? 'bg-blue-600 text-white border-blue-600 cursor-not-allowed'
+                : 'bg-dark-tertiary hover:bg-dark-hover text-text-primary border-dark-border hover:border-accent-blue/30'
+                }`}
+            >
+              {downloading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Baixando...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Baixar anúncio
+                </>
+              )}
+            </button>
+
+            {/* Botões de visita */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Botão Ver Biblioteca */}
+              <button
+                onClick={() => visitLibrary()}
+                className="bg-purple-600 hover:bg-purple-700 text-white py-2.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium"
+              >
+                <BookOpen className="w-4 h-4" />
+                Ver Biblioteca
+              </button>
+
+              {/* Botão Dinâmico baseado no tipo de link */}
+              <button
+                onClick={() => visitSite()}
+                disabled={linkButtonInfo.disabled}
+                className={`${linkButtonInfo.color} ${linkButtonInfo.disabled ? 'opacity-50 cursor-not-allowed' : ''} text-white py-2.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium`}
+              >
+                <linkButtonInfo.icon className="w-4 h-4" />
+                {linkButtonInfo.text}
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-center text-xs text-text-muted">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span>{getDaysAgo(ad.created_at)} dias</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Informações do anunciante (pequeno, discreto) */}
+        <div className="px-4 pb-3">
+          <div className="text-xs text-text-muted">
+          </div>
+        </div>
+      </div>
+
+      {/* Modal de Vídeo */}
+      <AnimatePresence>
+        {isModalOpen && hasVideo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="relative max-w-6xl w-full max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Botão Fechar */}
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors z-10"
+              >
+                <X className="w-8 h-8" />
+              </button>
+
+              {/* Vídeo no Modal */}
+              <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
+                <video
+                  ref={modalVideoRef}
+                  src={ad.video_url || ''}
+                  poster={ad.thumbnail_url || ''}
+                  className="w-full h-auto max-h-[80vh] object-contain"
+                  controls
+                  autoPlay={isPlaying}
+                  muted={isMuted}
+                  style={{ aspectRatio: '16/9' }}
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  onEnded={() => setIsPlaying(false)}
+                />
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
     </>
   )
 } 
